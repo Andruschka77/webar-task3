@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>MindAR Face – Мульти‑эффекты</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.0/dist/mindar-face.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
+  <style>
+    body {margin:0; overflow:hidden; background:#000;}
+    #ui {position:absolute; top:10px; left:10px; z-index:10;}
+    select {font-size:1rem; padding:0.4rem;}
+  </style>
+</head>
+
+<body>
+  <div id="ui">
+    <select id="effect">
+      <option value="none">— Выберите эффект —</option>
+      <option value="glasses">Очки</option>
+      <option value="hat">Шляпа</option>
+    </select>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
