@@ -1,29 +1,104 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>MindAR Face – Мульти‑эффекты</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.0/dist/mindar-face.prod.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Задание 3: MindAR Face Tracking</title>
 
   <style>
-    body {margin:0; overflow:hidden; background:#000;}
-    #ui {position:absolute; top:10px; left:10px; z-index:10;}
-    select {font-size:1rem; padding:0.4rem;}
+    body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+    /* Стиль для выпадающего списка, чтобы он был поверх камеры */
+    #effect-selector {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
   </style>
+
+  <!-- Подключаем A-Frame и MindAR Face -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
 </head>
 
 <body>
-  <div id="ui">
-    <select id="effect">
-      <option value="none">— Выберите эффект —</option>
-      <option value="glasses">Очки</option>
-      <option value="hat">Шляпа</option>
-    </select>
-  </div>
+  <!-- Меню выбора эффекта -->
+  <select id="effect-selector">
+    <option value="none">— Выберите эффект —</option>
+    <option value="glasses">Очки</option>
+    <option value="hat">Шляпа</option>
+  </select>
 
-  <script type="module" src="./app.js"></script>
+  <!-- Сцена с настройками сглаживания трекинга (filterMinCF и filterBeta) -->
+  <a-scene
+    mindar-face="filterMinCF: 0.0001; filterBeta: 1"
+    renderer="colorManagement: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <!-- Предзагрузка моделей -->
+    <a-assets>
+      <!-- Пути адаптированы под стандартную папку models. Измени, если у тебя по-другому -->
+      <a-asset-item id="glassesModel" src="./models/glasses.glb"></a-asset-item>
+      <a-asset-item id="hatModel" src="./models/hat.glb"></a-asset-item>
+      <a-asset-item id="headOccluder" src="./models/headOccluder.glb"></a-asset-item>
+    </a-assets>
+
+    <!-- Камера (look-controls отключен, чтобы не мешал трекингу лица) -->
+    <a-camera active="false" position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- Освещение -->
+    <a-light type="ambient" intensity="0.8"></a-light>
+    <a-light type="directional" intensity="1" position="0 1 1"></a-light>
+
+    <!-- ЯКОРЬ 168: Переносица (идеально для очков и маски головы) -->
+    <a-entity mindar-face-target="anchorIndex: 168">
+      <!-- Окклюдер: скрывает заднюю часть очков, когда поворачиваешь голову (про-фишка!) -->
+      <a-gltf-model mindar-face-occluder src="#headOccluder" position="0 -0.3 0.15" scale="0.065 0.065 0.065" visible="false" id="occluderEntity"></a-gltf-model>
+
+      <!-- Сами очки (изначально скрыты) -->
+      <a-gltf-model src="#glassesModel" position="0 0 -0.1" scale="0.35 0.35 0.35" visible="false" id="glassesEntity"></a-gltf-model>
+    </a-entity>
+
+    <!-- ЯКОРЬ 10: Макушка головы (идеально для шляпы) -->
+    <a-entity mindar-face-target="anchorIndex: 10">
+      <!-- Шляпа (изначально скрыта). Position и Scale нужно будет подстроить под твою модель -->
+      <a-gltf-model src="#hatModel" position="-0.1 0.3 -0.35" scale="0.5 0.5 0.5" visible="false" id="hatEntity"></a-gltf-model>
+    </a-entity>
+
+  </a-scene>
+
+  <!-- Скрипт для переключения эффектов -->
+  <script>
+    const selector = document.getElementById('effect-selector');
+    const glasses = document.getElementById('glassesEntity');
+    const hat = document.getElementById('hatEntity');
+    const occluder = document.getElementById('occluderEntity');
+
+    selector.addEventListener('change', (e) => {
+      const val = e.target.value;
+
+      // 1. Скрываем всё
+      glasses.setAttribute('visible', false);
+      hat.setAttribute('visible', false);
+      occluder.setAttribute('visible', false);
+
+      // 2. Показываем выбранное
+      if (val === 'glasses') {
+        glasses.setAttribute('visible', true);
+        occluder.setAttribute('visible', true); // Окклюдер нужен только с очками
+      } else if (val === 'hat') {
+        hat.setAttribute('visible', true);
+      }
+    });
+  </script>
 </body>
 </html>
